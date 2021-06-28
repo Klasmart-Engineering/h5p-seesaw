@@ -20,6 +20,10 @@ export default class BalanceContent {
       onInteracted: () => {}
     }, callbacks);
 
+    this.handleMoveStart = this.handleMoveStart.bind(this);
+    this.handleMove = this.handleMove.bind(this);
+    this.handleMoveEnd = this.handleMoveEnd.bind(this);
+
     this.content = document.createElement('div');
     this.content.classList.add('h5p-balance-canvas');
 
@@ -48,25 +52,10 @@ export default class BalanceContent {
     this.group = Matter.Body.nextGroup(true);
     this.addSeesaw();
 
-    this.handleMoveStart = this.handleMoveStart.bind(this);
     ['mousedown', 'touchstart'].forEach(type => {
       this.content.addEventListener(type, (event) => {
         this.handleMoveStart(event);
       }, false);
-    });
-
-    this.handleMove = this.handleMove.bind(this);
-    ['mousemove', 'touchmove'].forEach(type => {
-      document.addEventListener(type, (event) => {
-        this.handleMove(event);
-      });
-    });
-
-    this.handleMoveEnd = this.handleMoveEnd.bind(this);
-    ['mouseup', 'touchend'].forEach(type => {
-      window.addEventListener(type, (event) => {
-        this.handleMoveEnd(event);
-      });
     });
 
     // Add object to DOM
@@ -136,6 +125,14 @@ export default class BalanceContent {
       x: (event.type === 'touchstart') ? event.touches[0].clientX : event.clientX,
       y: (event.type === 'touchstart') ? event.touches[0].clientY : event.clientY
     };
+
+    ['mousemove', 'touchmove'].forEach(type => {
+      document.addEventListener(type, this.handleMove);
+    });
+
+    ['mouseup', 'touchend'].forEach(type => {
+      window.addEventListener(type, this.handleMoveEnd);
+    });
   }
 
   handleMove(event) {
@@ -179,6 +176,14 @@ export default class BalanceContent {
     if (!this.currentDraggable) {
       return;
     }
+
+    ['mousemove', 'touchmove'].forEach(type => {
+      document.removeEventListener(type, this.handleMove);
+    });
+
+    ['mouseup', 'touchend'].forEach(type => {
+      window.removeEventListener(type, this.handleMoveEnd);
+    });
 
     this.setPositionMatterFromDOM();
 
