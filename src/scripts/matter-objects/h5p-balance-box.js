@@ -38,6 +38,11 @@ export default class BalanceBox {
       this.boxDOM.classList.add(className);
     });
 
+    if (this.params.options?.image?.params?.file?.path && this.params.options?.contentId) {
+      this.boxDOM.style.backgroundImage = `URL(${H5P.getPath(this.params.options.image.params.file.path, this.params.options.contentId)})`;
+    }
+
+    // TODO: Set box height based on image width/height?
     this.boxDOM.style.width = `${this.params.size.width}px`;
     this.boxDOM.style.height = `${this.params.size.height}px`;
 

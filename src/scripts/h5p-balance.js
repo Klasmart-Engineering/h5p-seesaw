@@ -74,7 +74,8 @@ export default class Balance extends H5P.Question {
    */
   registerDomElements() {
     this.content = new BalanceContent({
-      items: [this.params.item1, this.params.item2]
+      items: [this.params.item1, this.params.item2],
+      contentId: this.contentId
     });
 
     // Register content with H5P.Question

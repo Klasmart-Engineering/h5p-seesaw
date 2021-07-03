@@ -8,6 +8,15 @@
     border: 0;
     position: absolute;
 
+    &.h5p-balance-seesaw {
+      background-color: bisque;
+    }
+
+    &.custom-image {
+      background-repeat: no-repeat;
+      background-size: contain;
+    }
+
     &.wireframe {
       border: 1px solid #000;
       box-sizing: border-box;

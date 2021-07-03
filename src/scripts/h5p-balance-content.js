@@ -113,45 +113,74 @@ export default class BalanceContent {
     }, 0);
   }
 
-  handlePhysicsUpdate() {
-    this.updateNumbers = this.updateNumbers || 0;
-    this.updateNumbers++;
+  /**
+   * Determine whether seesaw is stable.
+   * @param {object} [params] Parameters.
+   * @param {number} [params.maxDegreesDelta = 1] Maximum change of angle degrees.
+   * @param {number} [params.minQueueLength = BalanceContent.ANGLE_QUEUE_LENGTH] Minumum number of degrees to compare.
+   * @return {boolean} True, if seesaw is stable. Else false.
+   */
+  isSeesawStable(params = {}) {
+    params.maxDegreesDelta = params.maxDegreesDelta || 1;
+    params.minQueueLength = params.minQueueLength || BalanceContent.ANGLE_QUEUE_LENGTH;
 
-    const seesawAngle = this.seesaw.getMatter().angle * 180 / Math.PI;
-
-    this.seesawAngles.push(seesawAngle);
-    if (this.seesawAngles.length > 100) {
-      this.seesawAngles.shift();
+    if (this.seesawAngles.length < params.minQueueLength) {
+      return false;
     }
 
-    if (this.currentDraggable || this.seesawAngles.length < 100) {
-      return;
-    }
-
-    const anglesMinMax = this.seesawAngles.reduce((anglesMinMax, angle) => {
+    const degrees = this.seesawAngles.reduce((degrees, angle) => {
       return {
-        min: Math.min(anglesMinMax.min, angle),
-        max: Math.max(anglesMinMax.max, angle)
+        min: Math.min(degrees.min, angle),
+        max: Math.max(degrees.max, angle)
       };
     }, {min: 360, max: -360});
 
-    const anglesDelta = Math.abs(anglesMinMax.max - anglesMinMax.min);
+    const degreesDelta = Math.abs(degrees.max - degrees.min);
+    return (degreesDelta <= params.maxDegreesDelta);
+  }
 
-    // This would need to be adjusted for more than 2 movables
-    const speed1 = this.boxes[0].getMatter().speed;
-    const speed2 = this.boxes[1].getMatter().speed;
+  areBoxesOnSeesaw() {
+    const seesawAngleRad = this.seesaw.getMatter().angle;
 
-    if (anglesDelta < 1 && speed1 < 0.3 && speed2 < 0.3 && Math.abs(speed1 - speed2) < 0.001) {
-      this.seesawAngles = [];
-      this.physics.stop();
+    return this.boxes.every(box => {
+      return Math.abs(seesawAngleRad - box.getMatter().angle) < 0.01;
+    });
+  }
+
+  areBoxesVerySlow() {
+    return this.boxes.every(box => box.getMatter().speed < 0.3);
+  }
+
+  handlePhysicsUpdate() {
+    const seesawAngleRad = this.seesaw.getMatter().angle;
+    const seesawAngle = seesawAngleRad * 180 / Math.PI;
+
+    this.seesawAngles.push(seesawAngle);
+    if (this.seesawAngles.length > BalanceContent.ANGLE_QUEUE_LENGTH) {
+      this.seesawAngles.shift();
     }
+
+    if (this.currentDraggable) {
+      return; // currently moving a draggable
+    }
+
+    if (!this.areBoxesOnSeesaw()) {
+      return; // Boxes not on seesaw
+    }
+
+    if (!this.isSeesawStable()) {
+      return; // Seesaw not stable
+    }
+
+    if (!this.areBoxesVerySlow()) {
+      return; // Boxes moving too fast
+    }
+
+    this.seesawAngles = [];
+    this.physics.stop();
   }
 
   handleMoveStart(event) {
-    if (!this.physics.isEnabled()) {
-      this.physics.run();
-    }
-
     const box = this.boxes
       .filter(box => box.getDOM() === event.target)
       .shift();
@@ -183,6 +212,11 @@ export default class BalanceContent {
     event.preventDefault();
     if (!this.currentDraggable) {
       return;
+    }
+
+    if (!this.physics.isEnabled()) {
+      this.physics.run();
+      this.renderer.run();
     }
 
     this.currentDraggable.startDrag();
@@ -238,6 +272,10 @@ export default class BalanceContent {
   }
 
   setPositionMatterFromDOM() {
+    if (!this.currentDraggable) {
+      return;
+    }
+
     const positionDOM = this.currentDraggable.getPositionDOM();
     const offset = this.renderer.getOffset();
     const scale = this.renderer.getScale();
@@ -334,14 +372,18 @@ export default class BalanceContent {
         inverseMass: 1 / item.weight * 10
       }, boxOptions);
 
+      const classes = !item.image ? ['wireframe'] : ['custom-image'];
+
       const box = new BalanceBox(
         {
           position: position,
           size: { width: item.width, height: item.height },
           matterOptions: matterOptions,
           options: {
-            classes: ['wireframe'],
-            movable: true
+            contentId: this.params.contentId,
+            classes: classes,
+            movable: true,
+            image: item.image
           }
         },
         {
@@ -359,6 +401,19 @@ export default class BalanceContent {
   }
 
   addSeesaw() {
+    const base = new BalanceBox({
+      position: { x: this.maxSize.x / 2, y: this.maxSize.y - (this.maxSize.y / 20) },
+      size: { width: this.maxSize.y / 25, height: this.maxSize.y / 10 },
+      matterOptions: {
+        collisionFilter: { group: this.group },
+        isStatic: true
+      },
+      options: {
+        classes: ['wireframe', 'h5p-balance-seesaw']
+      }
+    });
+    this.physics.add(base);
+
     const seesaw = new BalanceBox({
       position: { x: this.maxSize.x / 2, y: this.maxSize.y - (this.maxSize.y / 10) },
       size: { width: this.maxSize.x / 1.25, height: this.maxSize.y / 25 },
@@ -372,23 +427,10 @@ export default class BalanceContent {
         label: 'seesaw'
       },
       options: {
-        classes: ['wireframe']
+        classes: ['wireframe', 'h5p-balance-seesaw']
       }
     });
     this.physics.add(seesaw);
-
-    const base = new BalanceBox({
-      position: { x: this.maxSize.x / 2, y: this.maxSize.y - (this.maxSize.y / 20) },
-      size: { width: this.maxSize.y / 25, height: this.maxSize.y / 10 },
-      matterOptions: {
-        collisionFilter: { group: this.group },
-        isStatic: true
-      },
-      options: {
-        classes: ['wireframe']
-      }
-    });
-    this.physics.add(base);
 
     this.physics.add(
       Matter.Constraint.create({
@@ -410,3 +452,6 @@ BalanceContent.BASE_SIZE = 1000;
 
 /** @const {number} Default aspect ratio. */
 BalanceContent.DEFAULT_ASPECT_RATIO = 2;
+
+/** @const {number} Number of angle values before considering stable. */
+BalanceContent.ANGLE_QUEUE_LENGTH = 250;
