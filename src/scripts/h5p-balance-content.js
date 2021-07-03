@@ -79,6 +79,11 @@ export default class BalanceContent {
     setTimeout(() => {
       this.resize();
     }, 0);
+
+    // Check why this seems to be necessary on WordPress
+    setTimeout(() => {
+      this.resize();
+    }, 1000);
   }
 
   /**
@@ -206,6 +211,11 @@ export default class BalanceContent {
   }
 
   handleMoveStart(event) {
+    if (event.type === 'touchstart') {
+      event.preventDefault();
+      // Adding this to mouse listener would prevent dropping outside canvas
+    }
+
     const box = this.boxes
       .filter(box => box.getDOM() === event.target)
       .shift();
@@ -225,16 +235,17 @@ export default class BalanceContent {
     };
 
     ['mousemove', 'touchmove'].forEach(type => {
-      document.addEventListener(type, this.handleMove);
+      document.addEventListener(type, this.handleMove, { passive: false });
     });
 
     ['mouseup', 'touchend'].forEach(type => {
-      window.addEventListener(type, this.handleMoveEnd);
+      window.addEventListener(type, this.handleMoveEnd, { passive: false });
     });
   }
 
   handleMove(event) {
     event.preventDefault();
+
     if (!this.currentDraggable || this.done) {
       return;
     }
@@ -247,8 +258,8 @@ export default class BalanceContent {
     this.currentDraggable.startDrag();
 
     let movePosition = {
-      x: (event.type === 'touchstart') ? event.touches[0].clientX : event.clientX,
-      y: (event.type === 'touchstart') ? event.touches[0].clientY : event.clientY
+      x: (event.type === 'touchmove') ? event.touches[0].clientX : event.clientX,
+      y: (event.type === 'touchmove') ? event.touches[0].clientY : event.clientY
     };
 
     if (movePosition.x < 0 && movePosition.y < 0) {
