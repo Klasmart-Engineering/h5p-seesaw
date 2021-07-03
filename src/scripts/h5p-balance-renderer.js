@@ -32,6 +32,10 @@ export default class BalanceRenderer {
   }
 
   update() {
+    if (!this.physics.isEnabled()) {
+      this.stop();
+    }
+
     this.physics.update();
 
     this.physics.getObjects().forEach(body => {

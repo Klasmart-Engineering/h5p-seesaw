@@ -1,12 +1,73 @@
 [
   {
-    "label": "Text",
-    "importance": "high",
-    "name": "textField",
-    "type": "text",
-    "placeholder": "Hello world",
-    "default": "Hello %username",
-    "description": "Says hello to someone"
+    "name": "item1",
+    "type": "group",
+    "fields": [
+      {
+        "name": "image",
+        "type": "library",
+        "label": "Image for item 1",
+        "options": [
+          "H5P.Image 1.1"
+        ]
+      },
+      {
+        "name": "width",
+        "type": "number",
+        "label": "Width",
+        "default": 80,
+        "optional": false
+      },
+      {
+        "name": "height",
+        "type": "number",
+        "label": "Height",
+        "default": 80,
+        "optional": false
+      },
+      {
+        "name": "weight",
+        "type": "number",
+        "label": "Weight",
+        "default": 10,
+        "optional": false
+      }
+    ]
+  },
+  {
+    "name": "item2",
+    "type": "group",
+    "fields": [
+      {
+        "name": "image",
+        "type": "library",
+        "label": "Image for item 2",
+        "options": [
+          "H5P.Image 1.1"
+        ]
+      },
+      {
+        "name": "width",
+        "type": "number",
+        "label": "Width",
+        "default": 80,
+        "optional": false
+      },
+      {
+        "name": "height",
+        "type": "number",
+        "label": "Height",
+        "default": 80,
+        "optional": false
+      },
+      {
+        "name": "weight",
+        "type": "number",
+        "label": "Weight",
+        "default": 10,
+        "optional": false
+      }
+    ]
   },
   {
     "name": "behaviour",

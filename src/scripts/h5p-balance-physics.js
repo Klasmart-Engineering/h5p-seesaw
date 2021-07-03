@@ -10,9 +10,12 @@ export default class BalancePhysics {
     }, params);
 
     this.callbacks = Util.extend({
+      onUpdate: () => {}
     }, callbacks);
 
     this.objects = [];
+
+    this.enabled = false;
 
     // create an engine
     this.engine = Matter.Engine.create({
@@ -20,6 +23,10 @@ export default class BalancePhysics {
     });
 
     this.runner = Matter.Runner.create();
+  }
+
+  isEnabled() {
+    return this.enabled;
   }
 
   add(object) {
@@ -34,15 +41,23 @@ export default class BalancePhysics {
   }
 
   run() {
-    Matter.Runner.run(this.runner, this.engine);
+    this.enabled = true;
+    Matter.Runner.start(this.runner, this.engine);
   }
 
   stop() {
+    this.enabled = false;
     Matter.Runner.stop(this.runner);
   }
 
   update() {
+    if (!this.enabled) {
+      return;
+    }
+
     Matter.Engine.update(this.engine);
+
+    this.callbacks.onUpdate();
   }
 
   getObjects() {

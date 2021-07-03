@@ -15,10 +15,6 @@ export default class Balance extends H5P.Question {
   constructor(params, contentId, extras = {}) {
     super('balance'); // CSS class selector for content's iframe: h5p-balance
 
-    this.params = params;
-    this.contentId = contentId;
-    this.extras = extras;
-
     /*
      * this.params.behaviour.enableSolutionsButton and this.params.behaviour.enableRetry
      * are used by H5P's question type contract.
@@ -28,6 +24,16 @@ export default class Balance extends H5P.Question {
 
     // Make sure all variables are set
     this.params = Util.extend({
+      item1: {
+        width: 100,
+        height: 100,
+        weight: 1000
+      },
+      item2: {
+        width: 100,
+        height: 100,
+        weight: 1000
+      },
       behaviour: {
         enableSolutionsButton: true,
         enableRetry: true
@@ -42,7 +48,10 @@ export default class Balance extends H5P.Question {
         showSolution: 'Show the solution. The task will be marked with its correct solution.',
         tryAgain: 'Reset the exercise to its original state.'
       }
-    }, this.params);
+    }, params);
+
+    this.contentId = contentId;
+    this.extras = extras;
 
     // Sanitize a11y and l10n
     for (let phrase in this.params.a11y) {
@@ -65,7 +74,7 @@ export default class Balance extends H5P.Question {
    */
   registerDomElements() {
     this.content = new BalanceContent({
-      previousState: this.previousState.random
+      items: [this.params.item1, this.params.item2]
     });
 
     // Register content with H5P.Question

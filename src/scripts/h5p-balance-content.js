@@ -14,6 +14,7 @@ export default class BalanceContent {
    */
   constructor(params = {}, callbacks = {}) {
     this.params = Util.extend({
+      items: []
     }, params);
 
     this.callbacks = Util.extend({
@@ -27,30 +28,35 @@ export default class BalanceContent {
     this.content = document.createElement('div');
     this.content.classList.add('h5p-balance-canvas');
 
-    this.physics = new BalancePhysics();
+    this.seesawAngles = [];
+
+    this.physics = new BalancePhysics({}, {
+      onUpdate: () => {
+        this.handlePhysicsUpdate();
+      }
+    });
     this.renderer = new BalanceRenderer({ physics: this.physics });
 
     /*
      * TODO outline
-     *
-     * - Do not use absolute mouse position for physics position! Must use delta
-     * - Fix pushing objects beyond boundaries (translation issue?)
      * - Add editor option to add images
      * - Add editor option to choose timeout
      */
+    this.aspectRatio = BalanceContent.DEFAULT_ASPECT_RATIO;
 
-    this.maxSize = {x: 800, y: 400};
-
-    this.aspectRatio = 2;
+    this.maxSize = {
+      x: BalanceContent.BASE_SIZE,
+      y: BalanceContent.BASE_SIZE / this.aspectRatio
+    };
 
     this.content.style.width = `${this.maxSize.x}px`;
     this.content.style.height = `${this.maxSize.y}px`;
 
     this.addBoundaries();
-    this.boxes = this.addBoxes();
+    this.boxes = this.addBoxes(this.params.items);
 
     this.group = Matter.Body.nextGroup(true);
-    this.addSeesaw();
+    this.seesaw = this.addSeesaw();
 
     ['mousedown', 'touchstart'].forEach(type => {
       this.content.addEventListener(type, (event) => {
@@ -107,7 +113,45 @@ export default class BalanceContent {
     }, 0);
   }
 
+  handlePhysicsUpdate() {
+    this.updateNumbers = this.updateNumbers || 0;
+    this.updateNumbers++;
+
+    const seesawAngle = this.seesaw.getMatter().angle * 180 / Math.PI;
+
+    this.seesawAngles.push(seesawAngle);
+    if (this.seesawAngles.length > 100) {
+      this.seesawAngles.shift();
+    }
+
+    if (this.currentDraggable || this.seesawAngles.length < 100) {
+      return;
+    }
+
+    const anglesMinMax = this.seesawAngles.reduce((anglesMinMax, angle) => {
+      return {
+        min: Math.min(anglesMinMax.min, angle),
+        max: Math.max(anglesMinMax.max, angle)
+      };
+    }, {min: 360, max: -360});
+
+    const anglesDelta = Math.abs(anglesMinMax.max - anglesMinMax.min);
+
+    // This would need to be adjusted for more than 2 movables
+    const speed1 = this.boxes[0].getMatter().speed;
+    const speed2 = this.boxes[1].getMatter().speed;
+
+    if (anglesDelta < 1 && speed1 < 0.3 && speed2 < 0.3 && Math.abs(speed1 - speed2) < 0.001) {
+      this.seesawAngles = [];
+      this.physics.stop();
+    }
+  }
+
   handleMoveStart(event) {
+    if (!this.physics.isEnabled()) {
+      this.physics.run();
+    }
+
     const box = this.boxes
       .filter(box => box.getDOM() === event.target)
       .shift();
@@ -234,7 +278,7 @@ export default class BalanceContent {
     const boundaries = [];
 
     // Add boundaries
-    const boundaryThickness = 1000; // To prevent quick bodies from glitching through
+    const boundaryThickness = BalanceContent.BASE_SIZE; // To prevent quick bodies from glitching through
     const boundaryTop = new BalanceBox({
       position: { x: this.maxSize.x / 2, y: -boundaryThickness / 2 },
       size: { width: this.maxSize.x, height: boundaryThickness },
@@ -270,50 +314,46 @@ export default class BalanceContent {
     return boundaries;
   }
 
-  addBoxes() {
+  addBoxes(items) {
     const boxes = [];
 
-    const boxOptions = { friction: 1, restitution: 0 };
+    const boxOptions = {
+      friction: 0.9,
+      frictionStatic: 10,
+      restitution: 0
+    };
 
-    const box1 = new BalanceBox(
-      {
-        position: { x: this.maxSize.x / 2 - (this.maxSize.x / 3), y: this.maxSize.y / 4 },
-        size: { width: this.maxSize.x / 10, height: this.maxSize.x / 10 },
-        matterOptions: boxOptions,
-        options: {
-          classes: ['wireframe'],
-          movable: true
-        }
-      },
-      {
-        onMoveStart: (event, box) => {
-          this.handleMoveStart(event, box);
-        }
-      }
-    );
-    this.physics.add(box1);
-    boxes.push(box1);
+    items.forEach((item, index) => {
+      // Fixed positions for now
+      const position = (index === 0) ?
+        { x: this.maxSize.x / 2 - (this.maxSize.x / 3), y: this.maxSize.y / 4 } :
+        { x: this.maxSize.x / 2 + (this.maxSize.x / 3), y: this.maxSize.y / 4 };
 
-    const box2 = new BalanceBox(
-      {
-        position: { x: this.maxSize.x / 2 + (this.maxSize.x / 3), y: this.maxSize.y / 4 },
-        size: { width: this.maxSize.x / 10, height: this.maxSize.x / 10 },
-        matterOptions: boxOptions,
-        options: {
-          classes: ['wireframe'],
-          movable: true
-        }
-      },
-      {
-        onMoveStart: (box) => {
-          this.currentDraggable = box;
-        }
-      }
-    );
-    this.physics.add(box2);
-    boxes.push(box2);
+      const matterOptions = Util.extend({
+        mass: item.weight / 10,
+        inverseMass: 1 / item.weight * 10
+      }, boxOptions);
 
-    Matter.Body.set(box2.getMatter(), 'density', box1.getMatter().density * 5);
+      const box = new BalanceBox(
+        {
+          position: position,
+          size: { width: item.width, height: item.height },
+          matterOptions: matterOptions,
+          options: {
+            classes: ['wireframe'],
+            movable: true
+          }
+        },
+        {
+          onMoveStart: (event, box) => {
+            this.handleMoveStart(event, box);
+          }
+        }
+      );
+
+      this.physics.add(box);
+      boxes.push(box);
+    });
 
     return boxes;
   }
@@ -324,24 +364,49 @@ export default class BalanceContent {
       size: { width: this.maxSize.x / 1.25, height: this.maxSize.y / 25 },
       matterOptions: {
         collisionFilter: { group: this.group },
-        friction: 1,
+        friction: 0.9,
+        frictionStatic: 10,
         restitution: 0,
-        density: 0.1
+        mass: 10000,
+        inverseMass: 1 / 10000,
+        label: 'seesaw'
       },
       options: {
         classes: ['wireframe']
       }
     });
-
     this.physics.add(seesaw);
+
+    const base = new BalanceBox({
+      position: { x: this.maxSize.x / 2, y: this.maxSize.y - (this.maxSize.y / 20) },
+      size: { width: this.maxSize.y / 25, height: this.maxSize.y / 10 },
+      matterOptions: {
+        collisionFilter: { group: this.group },
+        isStatic: true
+      },
+      options: {
+        classes: ['wireframe']
+      }
+    });
+    this.physics.add(base);
+
     this.physics.add(
       Matter.Constraint.create({
         bodyA: seesaw.getMatter(),
+        // bodyB: base.getMatter(),
         pointB: Matter.Vector.clone(seesaw.getMatter().position),
-        stiffness: 1,
+        stiffness: 0.9,
         type: 'pin',
         length: 0
       })
     );
+
+    return seesaw;
   }
 }
+
+/** @const {number} Base size. */
+BalanceContent.BASE_SIZE = 1000;
+
+/** @const {number} Default aspect ratio. */
+BalanceContent.DEFAULT_ASPECT_RATIO = 2;
