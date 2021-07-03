@@ -1,5 +1,10 @@
 [
   {
+    "name": "backgroundImage",
+    "type": "image",
+    "label": "Optional background image"
+  },
+  {
     "name": "item1",
     "type": "group",
     "fields": [
@@ -13,6 +18,7 @@
       },
       {
         "name": "width",
+        "description": "PLEASE NOTE: HANDLING OF WIDTH/HEIGHT MAY BE AUTOMATED IN THE FUTURE",
         "type": "number",
         "label": "Width",
         "default": 80,
@@ -20,6 +26,7 @@
       },
       {
         "name": "height",
+        "description": "PLEASE NOTE: HANDLING OF WIDTH/HEIGHT MAY BE AUTOMATED IN THE FUTURE",
         "type": "number",
         "label": "Height",
         "default": 80,
@@ -27,6 +34,7 @@
       },
       {
         "name": "weight",
+        "description": "PLEASE NOTE: THE PHYSICS ENGINE STILL NEEDS FINE TUNING REGARDING THE WEIGHT",
         "type": "number",
         "label": "Weight",
         "default": 10,
@@ -48,6 +56,7 @@
       },
       {
         "name": "width",
+        "description": "PLEASE NOTE: HANDLING OF WIDTH/HEIGHT MAY BE AUTOMATED IN THE FUTURE",
         "type": "number",
         "label": "Width",
         "default": 80,
@@ -55,6 +64,7 @@
       },
       {
         "name": "height",
+        "description": "PLEASE NOTE: HANDLING OF WIDTH/HEIGHT MAY BE AUTOMATED IN THE FUTURE",
         "type": "number",
         "label": "Height",
         "default": 80,
@@ -62,6 +72,7 @@
       },
       {
         "name": "weight",
+        "description": "PLEASE NOTE: THE PHYSICS ENGINE STILL NEEDS FINE TUNING REGARDING THE WEIGHT",
         "type": "number",
         "label": "Weight",
         "default": 10,
@@ -76,6 +87,24 @@
     "importance": "low",
     "description": "These options will let you control how the task behaves.",
     "fields": [
+      {
+        "name": "stableDegree",
+        "label": "Angle tolerance",
+        "description": "Maximum degree of the seesaw that's acceptable.",
+        "type": "number",
+        "min": 1,
+        "default": 1,
+        "optional": false
+      },
+      {
+        "name": "stableTime",
+        "label": "Stable time",
+        "description": "Time in seconds that the seesaw needs to be stable.",
+        "type": "number",
+        "min": 5,
+        "default": 5,
+        "optional": false
+      },
       {
         "name": "enableRetry",
         "label": "Enable \"Retry\"",

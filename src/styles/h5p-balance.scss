@@ -1,6 +1,11 @@
 .h5p-balance {
   .h5p-balance-canvas {
     border: 1px solid #000;
+
+    &.h5p-balance-backgroundImage {
+      background-repeat: no-repeat;
+      background-size: cover;
+    }
   }
 
   .h5p-balance-matter-object {
@@ -29,6 +34,10 @@
       -ms-user-select: none;
       -webkit-touch-callout: none;
       -webkit-user-select: none;
+    }
+
+    &:not(.immovable) {
+      cursor: move;
     }
 
     &.invisible {

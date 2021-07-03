@@ -56,8 +56,6 @@ export default class BalancePhysics {
     }
 
     Matter.Engine.update(this.engine);
-
-    this.callbacks.onUpdate();
   }
 
   getObjects() {

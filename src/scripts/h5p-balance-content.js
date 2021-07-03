@@ -25,36 +25,34 @@ export default class BalanceContent {
     this.handleMove = this.handleMove.bind(this);
     this.handleMoveEnd = this.handleMoveEnd.bind(this);
 
-    this.content = document.createElement('div');
-    this.content.classList.add('h5p-balance-canvas');
-
+    // Sequence of angles that the seesaw had
     this.seesawAngles = [];
 
-    this.physics = new BalancePhysics({}, {
-      onUpdate: () => {
-        this.handlePhysicsUpdate();
-      }
-    });
-    this.renderer = new BalanceRenderer({ physics: this.physics });
-
-    /*
-     * TODO outline
-     * - Add editor option to add images
-     * - Add editor option to choose timeout
-     */
+    // Aspect ratio
     this.aspectRatio = BalanceContent.DEFAULT_ASPECT_RATIO;
 
+    // Maximum size for physics world internally
     this.maxSize = {
       x: BalanceContent.BASE_SIZE,
       y: BalanceContent.BASE_SIZE / this.aspectRatio
     };
 
+    this.content = document.createElement('div');
+    this.content.classList.add('h5p-balance-canvas');
     this.content.style.width = `${this.maxSize.x}px`;
     this.content.style.height = `${this.maxSize.y}px`;
 
+    if (this.params?.backgroundImage?.path) {
+      this.content.style.backgroundImage = `URL(${H5P.getPath(this.params.backgroundImage.path, this.params.contentId)})`;
+      this.content.classList.add('h5p-balance-backgroundImage');
+    }
+
+    this.physics = new BalancePhysics();
+    this.renderer = new BalanceRenderer({ physics: this.physics });
+
+    // Add elements to world
     this.addBoundaries();
     this.boxes = this.addBoxes(this.params.items);
-
     this.group = Matter.Body.nextGroup(true);
     this.seesaw = this.addSeesaw();
 
@@ -64,7 +62,7 @@ export default class BalanceContent {
       }, false);
     });
 
-    // Add object to DOM
+    // Add objects to DOM
     this.physics.getObjects().forEach(object => {
       this.content.appendChild(object.getDOM());
     });
@@ -73,16 +71,10 @@ export default class BalanceContent {
     this.physics.run();
     this.renderer.run();
 
-    // Control renderer
-    // const controlRender = document.createElement('div');
-    // controlRender.style.height = `${this.maxSize.y}px`;
-    // controlRender.style.overflow = 'hidden';
-    // this.content.appendChild(controlRender);
-    // const render = Matter.Render.create({
-    //   element: controlRender,
-    //   engine: this.physics.engine
-    // });
-    // Matter.Render.run(render);
+    // Check whether seesaw is stable
+    this.stableTimer = setInterval(() => {
+      this.handleStableTimer();
+    }, 1000 / BalanceContent.SEESAW_STABLE_CHECKS_PER_SECOND);
 
     setTimeout(() => {
       this.resize();
@@ -97,6 +89,9 @@ export default class BalanceContent {
     return this.content;
   }
 
+  /**
+   * Resize DOM.
+   */
   resize() {
     this.content.style.width = '';
 
@@ -105,6 +100,7 @@ export default class BalanceContent {
 
       this.content.style.height = `${width / this.aspectRatio}px`;
 
+      // Inform renderer about new size
       this.renderer.setScale(width / this.maxSize.x);
       this.renderer.setOffset({
         x: this.content.offsetLeft,
@@ -116,15 +112,10 @@ export default class BalanceContent {
   /**
    * Determine whether seesaw is stable.
    * @param {object} [params] Parameters.
-   * @param {number} [params.maxDegreesDelta = 1] Maximum change of angle degrees.
-   * @param {number} [params.minQueueLength = BalanceContent.ANGLE_QUEUE_LENGTH] Minumum number of degrees to compare.
    * @return {boolean} True, if seesaw is stable. Else false.
    */
   isSeesawStable(params = {}) {
-    params.maxDegreesDelta = params.maxDegreesDelta || 1;
-    params.minQueueLength = params.minQueueLength || BalanceContent.ANGLE_QUEUE_LENGTH;
-
-    if (this.seesawAngles.length < params.minQueueLength) {
+    if (this.seesawAngles.length < this.params.stableTime * BalanceContent.SEESAW_STABLE_CHECKS_PER_SECOND) {
       return false;
     }
 
@@ -136,27 +127,45 @@ export default class BalanceContent {
     }, {min: 360, max: -360});
 
     const degreesDelta = Math.abs(degrees.max - degrees.min);
-    return (degreesDelta <= params.maxDegreesDelta);
+    return (degreesDelta <= BalanceContent.SEESAW_STABLE_DEGREE);
   }
 
+  /**
+   * Check whether boxes are on seesaw (based on same angle, could be wrong, but fine here).
+   * @return {boolean} True if all boxes have same angle as seesaw.
+   */
   areBoxesOnSeesaw() {
-    const seesawAngleRad = this.seesaw.getMatter().angle;
+    if (this.currentDraggable) {
+      return; // Someone is dragging a box
+    }
+
+    // Normalize angles to [0, 2 * Math.PI[
+    const fullRad = 2 * Math.PI;
+    const seesawAngle = (this.seesaw.getMatter().angle + fullRad) % fullRad;
 
     return this.boxes.every(box => {
-      return Math.abs(seesawAngleRad - box.getMatter().angle) < 0.01;
+      // Account for rotation of 90, 180, 270 as well
+      return [0, 0.5, 1, 1.5].some(factor => {
+        const boxAngle = (box.getMatter().angle + fullRad + factor * Math.PI) % fullRad;
+
+        return Math.abs(seesawAngle - boxAngle) < 0.01;
+      });
     });
   }
 
   areBoxesVerySlow() {
-    return this.boxes.every(box => box.getMatter().speed < 0.3);
+    return this.boxes.every(box => box.getMatter().speed < BalanceContent.THRESHOLD_BOX_SLOW);
   }
 
-  handlePhysicsUpdate() {
-    const seesawAngleRad = this.seesaw.getMatter().angle;
-    const seesawAngle = seesawAngleRad * 180 / Math.PI;
+  handleStableTimer() {
+    if (!this.physics.isEnabled()) {
+      return;
+    }
+
+    const seesawAngle = this.seesaw.getMatter().angle * 180 / Math.PI;
 
     this.seesawAngles.push(seesawAngle);
-    if (this.seesawAngles.length > BalanceContent.ANGLE_QUEUE_LENGTH) {
+    if (this.seesawAngles.length > this.params.stableTime * BalanceContent.SEESAW_STABLE_CHECKS_PER_SECOND) {
       this.seesawAngles.shift();
     }
 
@@ -176,8 +185,24 @@ export default class BalanceContent {
       return; // Boxes moving too fast
     }
 
+    this.handlesawStable(this.seesawAngles[this.seesawAngles.length - 1]);
+  }
+
+  handlesawStable(angle) {
     this.seesawAngles = [];
     this.physics.stop();
+
+    if (Math.abs(angle) < this.params.stableDegree) {
+      this.handleDone();
+    }
+  }
+
+  handleDone() {
+    this.done = true;
+
+    this.physics.getObjects().forEach(box => {
+      box.getDOM().style.filter = 'grayscale(1) blur(1px)';
+    });
   }
 
   handleMoveStart(event) {
@@ -210,7 +235,7 @@ export default class BalanceContent {
 
   handleMove(event) {
     event.preventDefault();
-    if (!this.currentDraggable) {
+    if (!this.currentDraggable || this.done) {
       return;
     }
 
@@ -422,8 +447,7 @@ export default class BalanceContent {
         friction: 0.9,
         frictionStatic: 10,
         restitution: 0,
-        mass: 10000,
-        inverseMass: 1 / 10000,
+        density: 0.005,
         label: 'seesaw'
       },
       options: {
@@ -435,7 +459,6 @@ export default class BalanceContent {
     this.physics.add(
       Matter.Constraint.create({
         bodyA: seesaw.getMatter(),
-        // bodyB: base.getMatter(),
         pointB: Matter.Vector.clone(seesaw.getMatter().position),
         stiffness: 0.9,
         type: 'pin',
@@ -453,5 +476,11 @@ BalanceContent.BASE_SIZE = 1000;
 /** @const {number} Default aspect ratio. */
 BalanceContent.DEFAULT_ASPECT_RATIO = 2;
 
-/** @const {number} Number of angle values before considering stable. */
-BalanceContent.ANGLE_QUEUE_LENGTH = 250;
+/** @const {number} Maximum degree deviation to consider seesaw stable. */
+BalanceContent.SEESAW_STABLE_DEGREE = 1;
+
+/** @const {number} Number of stability checks per second. */
+BalanceContent.SEESAW_STABLE_CHECKS_PER_SECOND = 2;
+
+/** @const {number} Speed value considered slow. */
+BalanceContent.THRESHOLD_BOX_SLOW = 0.3;

@@ -35,6 +35,8 @@ export default class Balance extends H5P.Question {
         weight: 1000
       },
       behaviour: {
+        stableDegree: 1,
+        stableTime: 5,
         enableSolutionsButton: true,
         enableRetry: true
       },
@@ -74,8 +76,11 @@ export default class Balance extends H5P.Question {
    */
   registerDomElements() {
     this.content = new BalanceContent({
+      backgroundImage: this.params.backgroundImage,
       items: [this.params.item1, this.params.item2],
-      contentId: this.contentId
+      contentId: this.contentId,
+      stableDegree: this.params.behaviour.stableDegree,
+      stableTime: this.params.behaviour.stableTime
     });
 
     // Register content with H5P.Question
