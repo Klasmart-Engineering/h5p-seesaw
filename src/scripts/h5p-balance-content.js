@@ -226,7 +226,7 @@ export default class BalanceContent {
 
     this.currentDraggable = box;
 
-    this.currentDraggable.startDrag();
+    this.currentDraggable.startDrag(this.renderer.getScale(this.renderer.getScale()));
 
     // Keep track of starting click position in absolute pixels
     this.moveStartPosition = {
@@ -322,8 +322,8 @@ export default class BalanceContent {
     });
   }
 
-  setPositionDOM(object, position) {
-    const boundingBox = object.getBoundingBoxDOM();
+  setPositionDOM(draggable, position) {
+    const boundingBox = draggable.getBoundingBoxDOM();
 
     const constraints = {
       min: {
@@ -336,7 +336,7 @@ export default class BalanceContent {
       }
     };
 
-    object.setPositionDOM(position, { constraints: constraints });
+    draggable.setPositionDOM(position, { constraints: constraints });
   }
 
   setPositionMatter(object, position) {

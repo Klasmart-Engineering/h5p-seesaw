@@ -47,10 +47,6 @@ export default class BalanceRenderer {
       body.boxDOM.style.left = `${this.offset.x + body.boxMatter.position.x * this.scale}px`;
       body.boxDOM.style.top = `${this.offset.y + body.boxMatter.position.y * this.scale}px`;
       body.boxDOM.style.transform = `translate(-50%, -50%) rotate(${body.boxMatter.angle || 0}rad) scale(${this.scale})`;
-
-      if (body.skipUpdate === 'scheduled') {
-        body.skipUpdate === true;
-      }
     });
 
     this.frameRequestId = window.requestAnimationFrame(() => {

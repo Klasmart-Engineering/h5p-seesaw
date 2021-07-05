@@ -107,11 +107,14 @@ export default class BalanceBox {
     return this.boxMatter;
   }
 
-  startDrag() {
+  startDrag(scale) {
     Matter.Body.setAngle(this.boxMatter, 0);
     Matter.Body.setAngularVelocity(this.boxMatter, 0);
+
+    this.boxDOM.style.transform = `translate(-50%, -50%) rotate(${this.boxMatter.angle || 0}rad) scale(${scale})`;
+
     this.boxMatter.isStatic = true;
-    this.skipUpdate = 'scheduled';
+    this.skipUpdate = true;
   }
 
   endDrag() {
