@@ -404,7 +404,8 @@ export default class SeesawContent {
         { x: this.maxSize.x / 2 + (this.maxSize.x / 3), y: this.maxSize.y / 4 };
 
       const matterOptions = Util.extend({
-        density: item.weight / 1000
+        mass: item.weight,
+        inverseMass: item.weight ? 1 / item.weight : undefined
       }, boxOptions);
 
       const classes = !item.image?.params?.file ? ['wireframe'] : ['custom-image'];
