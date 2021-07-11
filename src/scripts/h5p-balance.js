@@ -25,13 +25,13 @@ export default class Balance extends H5P.Question {
     // Make sure all variables are set
     this.params = Util.extend({
       item1: {
-        width: 100,
-        height: 100,
+        width: 10,
+        height: 10,
         weight: 1
       },
       item2: {
-        width: 100,
-        height: 100,
+        width: 10,
+        height: 10,
         weight: 2
       },
       behaviour: {
@@ -54,6 +54,10 @@ export default class Balance extends H5P.Question {
 
     this.contentId = contentId;
     this.extras = extras;
+
+    // Sanitize items' size and weight
+    this.params.item1 = this.sanitizeItem(this.params.item1);
+    this.params.item2 = this.sanitizeItem(this.params.item2);
 
     // Sanitize weight
     this.params.item1.weight = Util.constrain(this.params.item1.weight, 1, 10);
@@ -305,6 +309,33 @@ export default class Balance extends H5P.Question {
    */
   handleResize() {
     this.content.resize();
+  }
+
+  /**
+   * Sanitize item.
+   * @param {object} originalItem Item.
+   * @return {object} Sanitized item.
+   */
+  sanitizeItem(originalItem = {}) {
+    const item = {
+      ...originalItem
+    };
+
+    item.weight = Util.constrain(item.weight || 1, 1, 10);
+    item.width = Util.constrain(item.width || 10, 5, 25);
+    item.height = Util.constrain(item.height || 10, 5, 25);
+
+    // Use image proportions for size if possible
+    const file = item.image?.params?.file;
+    if (file?.height && file?.width) {
+      item.height = file.height * item.width / file.width;
+      if (item.height > 25) {
+        item.height = 25;
+        item.width = file.width * item.height / file.height;
+      }
+    }
+
+    return item;
   }
 }
 

@@ -412,7 +412,9 @@ export default class BalanceContent {
       const box = new BalanceBox(
         {
           position: position,
-          size: { width: item.width, height: item.height },
+          size: {
+            width: item.width / 100 * this.maxSize.x,
+            height: item.height / 100 * this.maxSize.x},
           matterOptions: matterOptions,
           options: {
             contentId: this.params.contentId,

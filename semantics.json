@@ -18,18 +18,22 @@
       },
       {
         "name": "width",
-        "description": "PLEASE NOTE: HANDLING OF WIDTH/HEIGHT MAY BE AUTOMATED IN THE FUTURE",
+        "description": "Width of the item as percentage of the screen's width. Possible values range from 5 to 25.",
         "type": "number",
         "label": "Width",
-        "default": 80,
+        "default": 10,
+        "min": 5,
+        "max": 25,
         "optional": false
       },
       {
         "name": "height",
-        "description": "PLEASE NOTE: HANDLING OF WIDTH/HEIGHT MAY BE AUTOMATED IN THE FUTURE",
+        "description": "Height of the item as percentage of the screen's width. Possible values range from 5 to 25. If you add an image, the height will be computed automatically.",
         "type": "number",
         "label": "Height",
-        "default": 80,
+        "default": 10,
+        "min": 5,
+        "max": 25,
         "optional": false
       },
       {
@@ -58,23 +62,27 @@
       },
       {
         "name": "width",
-        "description": "PLEASE NOTE: HANDLING OF WIDTH/HEIGHT MAY BE AUTOMATED IN THE FUTURE",
+        "description": "Width of the item as percentage of the screen's width. Possible values range from 5 to 25.",
         "type": "number",
         "label": "Width",
-        "default": 80,
+        "default": 10,
+        "min": 5,
+        "max": 25,
         "optional": false
       },
       {
         "name": "height",
-        "description": "PLEASE NOTE: HANDLING OF WIDTH/HEIGHT MAY BE AUTOMATED IN THE FUTURE",
+        "description": "Height of the item as percentage of the screen's width. Possible values range from 5 to 25. If you add an image, the height will be computed automatically.",
         "type": "number",
         "label": "Height",
-        "default": 80,
+        "default": 10,
+        "min": 5,
+        "max": 25,
         "optional": false
       },
       {
         "name": "weight",
-        "description": "Weight of the item. Ranges from 1 to 10.",
+        "description": "Weight of the item. Possible values range from 1 to 10.",
         "type": "number",
         "label": "Weight",
         "default": 2,
