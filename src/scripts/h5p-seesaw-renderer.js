@@ -12,7 +12,6 @@ export default class SeesawRenderer {
     this.physics = params.physics;
 
     this.setScale(1);
-    this.setOffset({ x: 0, y: 0 });
   }
 
   setScale(scale) {
@@ -21,14 +20,6 @@ export default class SeesawRenderer {
 
   getScale() {
     return this.scale;
-  }
-
-  setOffset(offset) {
-    this.offset = offset;
-  }
-
-  getOffset() {
-    return this.offset;
   }
 
   update() {
@@ -44,8 +35,8 @@ export default class SeesawRenderer {
         return; // Should skip rendering based on physics position
       }
 
-      body.boxDOM.style.left = `${this.offset.x + body.boxMatter.position.x * this.scale}px`;
-      body.boxDOM.style.top = `${this.offset.y + body.boxMatter.position.y * this.scale}px`;
+      body.boxDOM.style.left = `${body.boxMatter.position.x * this.scale}px`;
+      body.boxDOM.style.top = `${body.boxMatter.position.y * this.scale}px`;
       body.boxDOM.style.transform = `translate(-50%, -50%) rotate(${body.boxMatter.angle || 0}rad) scale(${this.scale})`;
     });
 

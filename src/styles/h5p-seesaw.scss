@@ -1,6 +1,8 @@
 .h5p-seesaw {
   .h5p-seesaw-canvas {
     border: 1px solid #000;
+    overflow: hidden;
+    position: relative;
 
     &.h5p-seesaw-backgroundImage {
       background-repeat: no-repeat;

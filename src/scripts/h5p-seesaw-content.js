@@ -107,10 +107,6 @@ export default class SeesawContent {
 
       // Inform renderer about new size
       this.renderer.setScale(width / this.maxSize.x);
-      this.renderer.setOffset({
-        x: this.content.offsetLeft,
-        y: this.content.offsetTop
-      });
     }, 0);
   }
 
@@ -119,7 +115,7 @@ export default class SeesawContent {
    * @param {object} [params] Parameters.
    * @return {boolean} True, if seesaw is stable. Else false.
    */
-  isSeesawStable(params = {}) {
+  isSeesawStable() {
     if (this.seesawAngles.length < this.params.stableTime * SeesawContent.SEESAW_STABLE_CHECKS_PER_SECOND) {
       return false;
     }
@@ -313,12 +309,11 @@ export default class SeesawContent {
     }
 
     const positionDOM = this.currentDraggable.getPositionDOM();
-    const offset = this.renderer.getOffset();
     const scale = this.renderer.getScale();
 
     this.setPositionMatter(this.currentDraggable, {
-      x: (positionDOM.x - offset.x) / scale,
-      y: (positionDOM.y - offset.y) / scale
+      x: positionDOM.x / scale,
+      y: positionDOM.y / scale
     });
   }
 
@@ -327,12 +322,12 @@ export default class SeesawContent {
 
     const constraints = {
       min: {
-        x: this.content.offsetLeft + boundingBox.width / 2,
-        y: this.content.offsetTop + boundingBox.height / 2
+        x: boundingBox.width / 2,
+        y: boundingBox.height / 2
       },
       max: {
-        x: this.content.offsetLeft + this.content.offsetWidth - boundingBox.width / 2,
-        y: this.content.offsetTop + this.content.offsetHeight - boundingBox.height / 2
+        x: this.content.offsetWidth - boundingBox.width / 2,
+        y: this.content.offsetHeight - boundingBox.height / 2
       }
     };
 
