@@ -56,8 +56,8 @@ export default class Balance extends H5P.Question {
     this.extras = extras;
 
     // Sanitize weight
-    this.params.item1.weight = Util.contrain(this.params.item1.weight, 1, 10);
-    this.params.item2.weight = Util.contrain(this.params.item2.weight, 1, 10);
+    this.params.item1.weight = Util.constrain(this.params.item1.weight, 1, 10);
+    this.params.item2.weight = Util.constrain(this.params.item2.weight, 1, 10);
 
     // Sanitize a11y and l10n
     for (let phrase in this.params.a11y) {
