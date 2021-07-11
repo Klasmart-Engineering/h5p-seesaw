@@ -38,7 +38,7 @@
       },
       {
         "name": "weight",
-        "description": "Weight of the item. Ranges from 1 to 10. If not set, the weight will be determined by the size of the object.",
+        "description": "Weight of the item. Possible values range from 1 to 10. If not set, the weight will be determined by the size of the object.",
         "type": "number",
         "label": "Weight",
         "default": 1,
@@ -82,7 +82,7 @@
       },
       {
         "name": "weight",
-        "description": "Weight of the item. Possible values range from 1 to 10.",
+        "description": "Weight of the item. Possible values range from 1 to 10. If not set, the weight will be determined by the size of the object.",
         "type": "number",
         "label": "Weight",
         "default": 4,
