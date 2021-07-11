@@ -1,9 +1,9 @@
 import Matter from 'matter-js';
-import Util from './h5p-balance-util';
-import BalanceBox from './matter-objects/h5p-balance-box';
+import Util from './h5p-seesaw-util';
+import SeesawBox from './matter-objects/h5p-seesaw-box';
 
 /** Class representing the physics */
-export default class BalancePhysics {
+export default class SeesawPhysics {
   constructor(params = {}, callbacks = {}) {
 
     this.params = Util.extend({
@@ -30,7 +30,7 @@ export default class BalancePhysics {
   }
 
   add(object) {
-    if (object instanceof BalanceBox) {
+    if (object instanceof SeesawBox) {
       this.objects.push(object);
       Matter.Composite.add(this.engine.world, object.getMatter());
     }

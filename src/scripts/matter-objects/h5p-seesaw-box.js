@@ -1,8 +1,8 @@
 import Matter from 'matter-js';
-import Util from './../h5p-balance-util';
+import Util from './../h5p-seesaw-util';
 
 /** Class representing a box */
-export default class BalanceBox {
+export default class SeesawBox {
 
   constructor(params = {}, callbacks = {}) {
     this.params = Util.extend({
@@ -33,7 +33,7 @@ export default class BalanceBox {
 
     this.boxDOM = document.createElement('div');
 
-    this.boxDOM.classList.add('h5p-balance-matter-object');
+    this.boxDOM.classList.add('h5p-seesaw-matter-object');
     this.params.options.classes.forEach(className => {
       this.boxDOM.classList.add(className);
     });

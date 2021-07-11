@@ -1,5 +1,5 @@
-# H5P Balance
-Let students drag and drop objects on a scale balance.
+# H5P Seesaw
+Let students drag and drop objects on a seesaw.
 
 ## Getting started
 Clone this repository with git and check out the branch that you are interested

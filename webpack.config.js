@@ -21,14 +21,14 @@ module.exports = {
   },
   plugins: [
     new MiniCssExtractPlugin({
-      filename: 'h5p-balance.css'
+      filename: 'h5p-seesaw.css'
     })
   ],
   entry: {
-    dist: './src/entries/h5p-balance.js'
+    dist: './src/entries/h5p-seesaw.js'
   },
   output: {
-    filename: 'h5p-balance.js',
+    filename: 'h5p-seesaw.js',
     path: path.resolve(__dirname, 'dist')
   },
   target: ['web', 'es5'], // IE11

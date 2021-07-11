@@ -1,24 +1,24 @@
 {
-  "title": "Balance",
-  "description": "Let students drag and drop objects on a scale balance.",
+  "title": "Seesaw",
+  "description": "Let students drag and drop objects on a seesaw.",
   "majorVersion": 0,
   "minorVersion": 1,
   "patchVersion": 0,
   "runnable": 1,
   "author": "KidsLoop",
   "license": "cr",
-  "machineName": "H5P.Balance",
+  "machineName": "H5P.Seesaw",
   "embedTypes": [
     "iframe"
   ],
   "preloadedJs": [
     {
-      "path": "dist/h5p-balance.js"
+      "path": "dist/h5p-seesaw.js"
     }
   ],
   "preloadedCss": [
     {
-      "path": "dist/h5p-balance.css"
+      "path": "dist/h5p-seesaw.css"
     }
   ],
   "preloadedDependencies": [

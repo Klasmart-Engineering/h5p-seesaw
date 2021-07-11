@@ -1,6 +1,6 @@
-import Util from './h5p-balance-util';
+import Util from './h5p-seesaw-util';
 
-export default class BalanceRenderer {
+export default class SeesawRenderer {
 
   constructor(params = {}, callbacks = {}) {
     this.params = Util.extend({

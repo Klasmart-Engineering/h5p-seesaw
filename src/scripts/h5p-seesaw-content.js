@@ -1,12 +1,12 @@
 import Matter from 'matter-js';
-import Util from './h5p-balance-util';
+import Util from './h5p-seesaw-util';
 
-import BalanceBox from './matter-objects/h5p-balance-box';
-import BalancePhysics from './h5p-balance-physics';
-import BalanceRenderer from './h5p-balance-renderer';
+import SeesawBox from './matter-objects/h5p-seesaw-box';
+import SeesawPhysics from './h5p-seesaw-physics';
+import SeesawRenderer from './h5p-seesaw-renderer';
 
 /** Class representing the content */
-export default class BalanceContent {
+export default class SeesawContent {
   /**
    * @constructor
    * @param {object} [params={}] Parameters.
@@ -29,26 +29,26 @@ export default class BalanceContent {
     this.seesawAngles = [];
 
     // Aspect ratio
-    this.aspectRatio = BalanceContent.DEFAULT_ASPECT_RATIO;
+    this.aspectRatio = SeesawContent.DEFAULT_ASPECT_RATIO;
 
     // Maximum size for physics world internally
     this.maxSize = {
-      x: BalanceContent.BASE_SIZE,
-      y: BalanceContent.BASE_SIZE / this.aspectRatio
+      x: SeesawContent.BASE_SIZE,
+      y: SeesawContent.BASE_SIZE / this.aspectRatio
     };
 
     this.content = document.createElement('div');
-    this.content.classList.add('h5p-balance-canvas');
+    this.content.classList.add('h5p-seesaw-canvas');
     this.content.style.width = `${this.maxSize.x}px`;
     this.content.style.height = `${this.maxSize.y}px`;
 
     if (this.params?.backgroundImage?.path) {
       this.content.style.backgroundImage = `URL(${H5P.getPath(this.params.backgroundImage.path, this.params.contentId)})`;
-      this.content.classList.add('h5p-balance-backgroundImage');
+      this.content.classList.add('h5p-seesaw-backgroundImage');
     }
 
-    this.physics = new BalancePhysics();
-    this.renderer = new BalanceRenderer({ physics: this.physics });
+    this.physics = new SeesawPhysics();
+    this.renderer = new SeesawRenderer({ physics: this.physics });
 
     // Add elements to world
     this.addBoundaries();
@@ -74,7 +74,7 @@ export default class BalanceContent {
     // Check whether seesaw is stable
     this.stableTimer = setInterval(() => {
       this.handleStableTimer();
-    }, 1000 / BalanceContent.SEESAW_STABLE_CHECKS_PER_SECOND);
+    }, 1000 / SeesawContent.SEESAW_STABLE_CHECKS_PER_SECOND);
 
     setTimeout(() => {
       this.resize();
@@ -120,7 +120,7 @@ export default class BalanceContent {
    * @return {boolean} True, if seesaw is stable. Else false.
    */
   isSeesawStable(params = {}) {
-    if (this.seesawAngles.length < this.params.stableTime * BalanceContent.SEESAW_STABLE_CHECKS_PER_SECOND) {
+    if (this.seesawAngles.length < this.params.stableTime * SeesawContent.SEESAW_STABLE_CHECKS_PER_SECOND) {
       return false;
     }
 
@@ -132,7 +132,7 @@ export default class BalanceContent {
     }, {min: 360, max: -360});
 
     const degreesDelta = Math.abs(degrees.max - degrees.min);
-    return (degreesDelta <= BalanceContent.SEESAW_STABLE_DEGREE);
+    return (degreesDelta <= SeesawContent.SEESAW_STABLE_DEGREE);
   }
 
   /**
@@ -159,7 +159,7 @@ export default class BalanceContent {
   }
 
   areBoxesVerySlow() {
-    return this.boxes.every(box => box.getMatter().speed < BalanceContent.THRESHOLD_BOX_SLOW);
+    return this.boxes.every(box => box.getMatter().speed < SeesawContent.THRESHOLD_BOX_SLOW);
   }
 
   handleStableTimer() {
@@ -170,7 +170,7 @@ export default class BalanceContent {
     const seesawAngle = this.seesaw.getMatter().angle * 180 / Math.PI;
 
     this.seesawAngles.push(seesawAngle);
-    if (this.seesawAngles.length > this.params.stableTime * BalanceContent.SEESAW_STABLE_CHECKS_PER_SECOND) {
+    if (this.seesawAngles.length > this.params.stableTime * SeesawContent.SEESAW_STABLE_CHECKS_PER_SECOND) {
       this.seesawAngles.shift();
     }
 
@@ -352,8 +352,8 @@ export default class BalanceContent {
     const boundaries = [];
 
     // Add boundaries
-    const boundaryThickness = BalanceContent.BASE_SIZE; // To prevent quick bodies from glitching through
-    const boundaryTop = new BalanceBox({
+    const boundaryThickness = SeesawContent.BASE_SIZE; // To prevent quick bodies from glitching through
+    const boundaryTop = new SeesawBox({
       position: { x: this.maxSize.x / 2, y: -boundaryThickness / 2 },
       size: { width: this.maxSize.x, height: boundaryThickness },
       matterOptions: {isStatic: true}
@@ -361,7 +361,7 @@ export default class BalanceContent {
     this.physics.add(boundaryTop);
     boundaries.push(boundaryTop);
 
-    const boundaryRight = new BalanceBox({
+    const boundaryRight = new SeesawBox({
       position: { x: this.maxSize.x + boundaryThickness / 2, y: this.maxSize.y / 2 },
       size: { width: boundaryThickness, height: this.maxSize.y },
       matterOptions: {isStatic: true}
@@ -369,7 +369,7 @@ export default class BalanceContent {
     this.physics.add(boundaryRight);
     boundaries.push(boundaryRight);
 
-    const boundaryBottom = new BalanceBox({
+    const boundaryBottom = new SeesawBox({
       position: { x: this.maxSize.x / 2, y: this.maxSize.y + boundaryThickness / 2 },
       size: { width: this.maxSize.x, height: boundaryThickness },
       matterOptions: {isStatic: true}
@@ -377,7 +377,7 @@ export default class BalanceContent {
     this.physics.add(boundaryBottom);
     boundaries.push(boundaryBottom);
 
-    const boundaryLeft = new BalanceBox({
+    const boundaryLeft = new SeesawBox({
       position: { x: -boundaryThickness / 2, y: this.maxSize.y / 2 },
       size: { width: boundaryThickness, height: this.maxSize.y },
       matterOptions: {isStatic: true}
@@ -407,9 +407,9 @@ export default class BalanceContent {
         density: item.weight / 1000
       }, boxOptions);
 
-      const classes = !item.image ? ['wireframe'] : ['custom-image'];
+      const classes = !item.image?.params?.file ? ['wireframe'] : ['custom-image'];
 
-      const box = new BalanceBox(
+      const box = new SeesawBox(
         {
           position: position,
           size: {
@@ -438,7 +438,7 @@ export default class BalanceContent {
   }
 
   addSeesaw() {
-    const base = new BalanceBox({
+    const base = new SeesawBox({
       position: { x: this.maxSize.x / 2, y: this.maxSize.y - (this.maxSize.y / 20) },
       size: { width: this.maxSize.y / 25, height: this.maxSize.y / 10 },
       matterOptions: {
@@ -446,12 +446,12 @@ export default class BalanceContent {
         isStatic: true
       },
       options: {
-        classes: ['wireframe', 'h5p-balance-seesaw']
+        classes: ['wireframe', 'h5p-seesaw-seesaw']
       }
     });
     this.physics.add(base);
 
-    const seesaw = new BalanceBox({
+    const seesaw = new SeesawBox({
       position: { x: this.maxSize.x / 2, y: this.maxSize.y - (this.maxSize.y / 10) },
       size: { width: this.maxSize.x / 1.25, height: this.maxSize.y / 25 },
       matterOptions: {
@@ -463,7 +463,7 @@ export default class BalanceContent {
         label: 'seesaw'
       },
       options: {
-        classes: ['wireframe', 'h5p-balance-seesaw']
+        classes: ['wireframe', 'h5p-seesaw-seesaw']
       }
     });
     this.physics.add(seesaw);
@@ -483,16 +483,16 @@ export default class BalanceContent {
 }
 
 /** @const {number} Base size. */
-BalanceContent.BASE_SIZE = 1000;
+SeesawContent.BASE_SIZE = 1000;
 
 /** @const {number} Default aspect ratio. */
-BalanceContent.DEFAULT_ASPECT_RATIO = 2;
+SeesawContent.DEFAULT_ASPECT_RATIO = 2;
 
 /** @const {number} Maximum degree deviation to consider seesaw stable. */
-BalanceContent.SEESAW_STABLE_DEGREE = 1;
+SeesawContent.SEESAW_STABLE_DEGREE = 1;
 
 /** @const {number} Number of stability checks per second. */
-BalanceContent.SEESAW_STABLE_CHECKS_PER_SECOND = 2;
+SeesawContent.SEESAW_STABLE_CHECKS_PER_SECOND = 2;
 
 /** @const {number} Speed value considered slow. */
-BalanceContent.THRESHOLD_BOX_SLOW = 0.3;
+SeesawContent.THRESHOLD_BOX_SLOW = 0.3;

@@ -1,19 +1,19 @@
-.h5p-balance {
-  .h5p-balance-canvas {
+.h5p-seesaw {
+  .h5p-seesaw-canvas {
     border: 1px solid #000;
 
-    &.h5p-balance-backgroundImage {
+    &.h5p-seesaw-backgroundImage {
       background-repeat: no-repeat;
       background-size: cover;
     }
   }
 
-  .h5p-balance-matter-object {
+  .h5p-seesaw-matter-object {
     background-color: transparent;
     border: 0;
     position: absolute;
 
-    &.h5p-balance-seesaw {
+    &.h5p-seesaw-seesaw {
       background-color: bisque;
     }
 

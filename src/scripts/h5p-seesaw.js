@@ -1,11 +1,11 @@
 // Import required classes
-import BalanceContent from './h5p-balance-content';
-import Util from './h5p-balance-util';
+import SeesawContent from './h5p-seesaw-content';
+import Util from './h5p-seesaw-util';
 
 /**
- * Class for Balance.
+ * Class for Seesaw.
  */
-export default class Balance extends H5P.Question {
+export default class Seesaw extends H5P.Question {
   /**
    * @constructor
    * @param {object} params Parameters passed by the editor.
@@ -13,7 +13,7 @@ export default class Balance extends H5P.Question {
    * @param {object} [extras] Saved state, metadata, etc.
    */
   constructor(params, contentId, extras = {}) {
-    super('balance'); // CSS class selector for content's iframe: h5p-balance
+    super('seesaw'); // CSS class selector for content's iframe: h5p-seesaw
 
     /*
      * this.params.behaviour.enableSolutionsButton and this.params.behaviour.enableRetry
@@ -83,7 +83,7 @@ export default class Balance extends H5P.Question {
    * Register the DOM elements with H5P.Question
    */
   registerDomElements() {
-    this.content = new BalanceContent({
+    this.content = new SeesawContent({
       backgroundImage: this.params.backgroundImage,
       items: [this.params.item1, this.params.item2],
       contentId: this.contentId,
@@ -275,7 +275,7 @@ export default class Balance extends H5P.Question {
     if (this.extras.metadata) {
       raw = this.extras.metadata.title;
     }
-    raw = raw || Balance.DEFAULT_DESCRIPTION;
+    raw = raw || Seesaw.DEFAULT_DESCRIPTION;
 
     // H5P Core function: createTitle
     return H5P.createTitle(raw);
@@ -287,7 +287,7 @@ export default class Balance extends H5P.Question {
    */
   // TODO: Have a field for a task description in the editor if you need one.
   getDescription() {
-    return this.params.taskDescription || Balance.DEFAULT_DESCRIPTION;
+    return this.params.taskDescription || Seesaw.DEFAULT_DESCRIPTION;
   }
 
   /**
@@ -340,4 +340,4 @@ export default class Balance extends H5P.Question {
 }
 
 /** @constant {string} */
-Balance.DEFAULT_DESCRIPTION = 'Balance';
+Seesaw.DEFAULT_DESCRIPTION = 'Seesaw';
