@@ -339,5 +339,5 @@ export default class Seesaw extends H5P.Question {
   }
 }
 
-/** @constant {string} */
+/** @constant {string} Default description (e.g. for xAPI if no title is given) */
 Seesaw.DEFAULT_DESCRIPTION = 'Seesaw';

@@ -11,6 +11,7 @@ export default class SeesawContent {
    * @constructor
    * @param {object} [params={}] Parameters.
    * @param {object} [callbacks={}] Callbacks.
+   * @param {function} [callbacks.interacted] Callback for user interacted.
    */
   constructor(params = {}, callbacks = {}) {
     this.params = Util.extend({
@@ -21,6 +22,7 @@ export default class SeesawContent {
       onInteracted: () => {}
     }, callbacks);
 
+    // Bind handlers
     this.handleMoveStart = this.handleMoveStart.bind(this);
     this.handleMove = this.handleMove.bind(this);
     this.handleMoveEnd = this.handleMoveEnd.bind(this);
@@ -37,16 +39,19 @@ export default class SeesawContent {
       y: SeesawContent.BASE_SIZE / this.aspectRatio
     };
 
+    // Create DOM
     this.content = document.createElement('div');
     this.content.classList.add('h5p-seesaw-canvas');
     this.content.style.width = `${this.maxSize.x}px`;
     this.content.style.height = `${this.maxSize.y}px`;
 
+    // Add optional background image
     if (this.params?.backgroundImage?.path) {
       this.content.style.backgroundImage = `URL(${H5P.getPath(this.params.backgroundImage.path, this.params.contentId)})`;
       this.content.classList.add('h5p-seesaw-backgroundImage');
     }
 
+    // Initialize physics world and renderer
     this.physics = new SeesawPhysics();
     this.renderer = new SeesawRenderer({ physics: this.physics });
 
@@ -56,6 +61,7 @@ export default class SeesawContent {
     this.group = Matter.Body.nextGroup(true);
     this.seesaw = this.addSeesaw();
 
+    // Handle item dragging
     ['mousedown', 'touchstart'].forEach(type => {
       this.content.addEventListener(type, (event) => {
         this.handleMoveStart(event);
@@ -63,7 +69,7 @@ export default class SeesawContent {
     });
 
     // Add objects to DOM
-    this.physics.getObjects().forEach(object => {
+    this.physics.getItems().forEach(object => {
       this.content.appendChild(object.getDOM());
     });
 
@@ -79,11 +85,6 @@ export default class SeesawContent {
     setTimeout(() => {
       this.resize();
     }, 0);
-
-    // Check why this seems to be necessary on WordPress
-    setTimeout(() => {
-      this.resize();
-    }, 1000);
   }
 
   /**
@@ -154,15 +155,23 @@ export default class SeesawContent {
     });
   }
 
+  /**
+   * Determine whether the boxes are moving very slowly.
+   * @return {boolean} True, if the boxes are moving very slowly.
+   */
   areBoxesVerySlow() {
     return this.boxes.every(box => box.getMatter().speed < SeesawContent.THRESHOLD_BOX_SLOW);
   }
 
+  /**
+   * Handler stable timer calling.
+   */
   handleStableTimer() {
     if (!this.physics.isEnabled()) {
       return;
     }
 
+    // Keep track of some previous angles of seesaw
     const seesawAngle = this.seesaw.getMatter().angle * 180 / Math.PI;
 
     this.seesawAngles.push(seesawAngle);
@@ -186,9 +195,13 @@ export default class SeesawContent {
       return; // Boxes moving too fast
     }
 
+    // Seesaw is stable
     this.handlesawStable(this.seesawAngles[this.seesawAngles.length - 1]);
   }
 
+  /**
+   * Handle seesaw being stable.
+   */
   handlesawStable(angle) {
     this.seesawAngles = [];
     this.physics.stop();
@@ -198,14 +211,21 @@ export default class SeesawContent {
     }
   }
 
+  /**
+   * Handle user is done.
+   */
   handleDone() {
     this.done = true;
 
-    this.physics.getObjects().forEach(box => {
+    this.physics.getItems().forEach(box => {
       box.getDOM().style.filter = 'grayscale(1) blur(1px)';
     });
   }
 
+  /**
+   * Handle user started moving a box.
+   * @param {MouseEvent|TouchEvent} event Event.
+   */
   handleMoveStart(event) {
     if (event.type === 'touchstart') {
       event.preventDefault();
@@ -221,7 +241,6 @@ export default class SeesawContent {
     }
 
     this.currentDraggable = box;
-
     this.currentDraggable.startDrag(this.renderer.getScale(this.renderer.getScale()));
 
     // Keep track of starting click position in absolute pixels
@@ -230,6 +249,7 @@ export default class SeesawContent {
       y: (event.type === 'touchstart') ? event.touches[0].clientY : event.clientY
     };
 
+    // Add further handlers
     ['mousemove', 'touchmove'].forEach(type => {
       document.addEventListener(type, this.handleMove, { passive: false });
     });
@@ -239,13 +259,18 @@ export default class SeesawContent {
     });
   }
 
+  /**
+   * Handle user moves a box.
+   * @param {MouseEvent|TouchEvent} event Event.
+   */
   handleMove(event) {
     event.preventDefault();
 
     if (!this.currentDraggable || this.done) {
-      return;
+      return; // nothing to drag
     }
 
+    // Restart paused physics engine
     if (!this.physics.isEnabled()) {
       this.physics.run();
       this.renderer.run();
@@ -253,6 +278,7 @@ export default class SeesawContent {
 
     this.currentDraggable.startDrag();
 
+    // Compute new position
     let movePosition = {
       x: (event.type === 'touchmove') ? event.touches[0].clientX : event.clientX,
       y: (event.type === 'touchmove') ? event.touches[0].clientY : event.clientY
@@ -269,24 +295,31 @@ export default class SeesawContent {
 
     this.moveStartPosition = movePosition;
 
-    const currentPositionDOM = this.currentDraggable.getPositionDOM();
-    this.setPositionDOM(this.currentDraggable, {
+    // Set position of object in DOM.
+    const currentPositionDOM = this.currentDraggable.getPositionInDOM();
+    this.setPositionInDOM(this.currentDraggable, {
       x: currentPositionDOM.x + moveDelta.x,
       y: currentPositionDOM.y + moveDelta.y
     });
 
+    // Update corresponding item position in physics world
     setTimeout(() => {
-      this.setPositionMatterFromDOM();
+      this.setPositionInMatterFromDOM(this.currentDraggable);
     }, 0);
   }
 
+  /**
+   * Handle user ended moving a box.
+   * @param {MouseEvent|TouchEvent} event Event.
+   */
   handleMoveEnd(event) {
     event.preventDefault();
 
     if (!this.currentDraggable) {
-      return;
+      return; // nothing to stop
     }
 
+    // Remove listeners
     ['mousemove', 'touchmove'].forEach(type => {
       document.removeEventListener(type, this.handleMove);
     });
@@ -295,7 +328,8 @@ export default class SeesawContent {
       window.removeEventListener(type, this.handleMoveEnd);
     });
 
-    this.setPositionMatterFromDOM();
+    // Update position
+    this.setPositionInMatterFromDOM(this.currentDraggable);
 
     this.currentDraggable.endDrag();
 
@@ -303,23 +337,33 @@ export default class SeesawContent {
     this.moveStartPosition = null;
   }
 
-  setPositionMatterFromDOM() {
-    if (!this.currentDraggable) {
+  /**
+   * Set position in physical world based on DOM position.
+   * @param {object} draggable Draggable in DOM.
+   */
+  setPositionInMatterFromDOM(draggable) {
+    if (!draggable) {
       return;
     }
 
-    const positionDOM = this.currentDraggable.getPositionDOM();
+    const positionDOM = draggable.getPositionInDOM();
     const scale = this.renderer.getScale();
 
-    this.setPositionMatter(this.currentDraggable, {
+    this.setPositionInMatter(draggable, {
       x: positionDOM.x / scale,
       y: positionDOM.y / scale
     });
   }
 
-  setPositionDOM(draggable, position) {
+  /**
+   * Set draggable position in DOM.
+   * @param {object} draggable Item being dragged.
+   * @param {object} position X and y position.
+   */
+  setPositionInDOM(draggable, position) {
     const boundingBox = draggable.getBoundingBoxDOM();
 
+    // Position 0/0 is translated to center
     const constraints = {
       min: {
         x: boundingBox.width / 2,
@@ -331,18 +375,26 @@ export default class SeesawContent {
       }
     };
 
-    draggable.setPositionDOM(position, { constraints: constraints });
+    draggable.setPositionInDOM(position, { constraints: constraints });
   }
 
-  setPositionMatter(object, position) {
+  /**
+   * Set draggable position in matter.js object.
+   * @param {object} draggable Item being dragged.
+   * @param {object} position X and y position.
+   */
+  setPositionInMatter(object, position) {
     const constraints = {
       min: { x: 0, y: 0},
       max: { x: this.maxSize.x, y: this.maxSize.y }
     };
 
-    object.setPositionMatter(position, { constraints: constraints });
+    object.setPositionInMatter(position, { constraints: constraints });
   }
 
+  /**
+   * Add boundaries to DOM.
+   */
   addBoundaries() {
     const boundaries = [];
 
@@ -383,6 +435,10 @@ export default class SeesawContent {
     return boundaries;
   }
 
+  /**
+   * Add draggable boxes to DOM.
+   * @param {object[]} items Items to be added to DOM.
+   */
   addBoxes(items) {
     const boxes = [];
 
@@ -433,6 +489,9 @@ export default class SeesawContent {
     return boxes;
   }
 
+  /**
+   * Add seesaw to DOM.
+   */
   addSeesaw() {
     const base = new SeesawBox({
       position: { x: this.maxSize.x / 2, y: this.maxSize.y - (this.maxSize.y / 20) },
