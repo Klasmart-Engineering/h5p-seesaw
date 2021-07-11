@@ -27,12 +27,12 @@ export default class Balance extends H5P.Question {
       item1: {
         width: 100,
         height: 100,
-        weight: 1000
+        weight: 1
       },
       item2: {
         width: 100,
         height: 100,
-        weight: 1000
+        weight: 2
       },
       behaviour: {
         stableDegree: 1,
@@ -54,6 +54,10 @@ export default class Balance extends H5P.Question {
 
     this.contentId = contentId;
     this.extras = extras;
+
+    // Sanitize weight
+    this.params.item1.weight = Util.contrain(this.params.item1.weight, 1, 10);
+    this.params.item2.weight = Util.contrain(this.params.item2.weight, 1, 10);
 
     // Sanitize a11y and l10n
     for (let phrase in this.params.a11y) {

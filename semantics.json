@@ -34,10 +34,12 @@
       },
       {
         "name": "weight",
-        "description": "PLEASE NOTE: THE PHYSICS ENGINE STILL NEEDS FINE TUNING REGARDING THE WEIGHT",
+        "description": "Weight of the item. Ranges from 1 to 10.",
         "type": "number",
         "label": "Weight",
-        "default": 10,
+        "default": 1,
+        "min": 1,
+        "max": 10,
         "optional": false
       }
     ]
@@ -72,10 +74,12 @@
       },
       {
         "name": "weight",
-        "description": "PLEASE NOTE: THE PHYSICS ENGINE STILL NEEDS FINE TUNING REGARDING THE WEIGHT",
+        "description": "Weight of the item. Ranges from 1 to 10.",
         "type": "number",
         "label": "Weight",
-        "default": 10,
+        "default": 2,
+        "min": 1,
+        "max": 10,
         "optional": false
       }
     ]

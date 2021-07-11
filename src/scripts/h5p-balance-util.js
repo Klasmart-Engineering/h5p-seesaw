@@ -75,6 +75,6 @@ export default class Util {
    * @returns {number} Constrained value.
    */
   static constrain(value, lo, hi) {
-    return Math.min(hi, Math.max(lo, value));
+    return Math.min(Math.max(lo, value), hi);
   }
 }

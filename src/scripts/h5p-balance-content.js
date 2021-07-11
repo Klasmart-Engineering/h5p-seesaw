@@ -404,8 +404,7 @@ export default class BalanceContent {
         { x: this.maxSize.x / 2 + (this.maxSize.x / 3), y: this.maxSize.y / 4 };
 
       const matterOptions = Util.extend({
-        mass: item.weight / 10,
-        inverseMass: 1 / item.weight * 10
+        density: item.weight / 1000
       }, boxOptions);
 
       const classes = !item.image ? ['wireframe'] : ['custom-image'];
@@ -458,7 +457,7 @@ export default class BalanceContent {
         friction: 0.9,
         frictionStatic: 10,
         restitution: 0,
-        density: 0.005,
+        density: 0.1,
         label: 'seesaw'
       },
       options: {
