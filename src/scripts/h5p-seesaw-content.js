@@ -276,6 +276,7 @@ export default class SeesawContent {
       this.renderer.run();
     }
 
+    this.seesawAngles = [];
     this.currentDraggable.startDrag();
 
     // Compute new position
